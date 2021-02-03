@@ -1,3 +1,5 @@
+import { walkSync } from "https://deno.land/std@0.85.0/fs/mod.ts";
+
 type FileStorageNumbers = { [path: string]: Array<number> };
 type FileStorageTypedArray = { [path: string]: Uint8Array };
 type FileSystemConfiguration = { initialized: boolean };
@@ -16,6 +18,7 @@ const fileExists = (path: string | URL): boolean => {
         return false;
     }
 }
+
 const getFilePath = (path: string | URL): string => {
     let filePath = undefined;
 
@@ -26,6 +29,7 @@ const getFilePath = (path: string | URL): string => {
     }
     return filePath;
 }
+
 const getFileDirectory = (filePath: string) => {
     if (filePath.indexOf("/") == -1) { // windows
       return filePath.substring(0, filePath.lastIndexOf('\\'));
@@ -34,6 +38,7 @@ const getFileDirectory = (filePath: string) => {
       return filePath.substring(0, filePath.lastIndexOf('/'));
     }
 }
+
 const guidGenerator = () => {
     let S4 = function() {
        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
@@ -42,12 +47,13 @@ const guidGenerator = () => {
 }
 
 export type CompileOptions = {
-    modulePath: string
+    modulePath: string,
+    contentFolders: Array<string>
     flags?: Array<string>
     output?: string;
 }
 
-export class MandarineFileSystem {
+export class Leaf {
 
     private static configuration: FileSystemConfiguration = { initialized: false };
     private static files: FileStorageTypedArray = {};
@@ -64,7 +70,7 @@ export class MandarineFileSystem {
 
         if(!filePath) throw new Error("Invalid Path");
 
-        const fileInMemory = this.files[filePath];
+        const fileInMemory = this.files[filePath] || this.files[`./${filePath}`];
         if(!fileInMemory) {
             if(fileExists(filePath)) {
                 const fileContent = Deno.readFileSync(filePath);
@@ -96,10 +102,16 @@ export class MandarineFileSystem {
 
     public static async compile(options: CompileOptions) {
         if(isExecutable) {
-            console.warn("")
             return;
         };
-        
+
+        options.contentFolders.forEach((folder) => {
+            for (const entry of Array.from(walkSync(folder)).filter((item) => item.isFile)) {
+                console.log(entry);
+                this.registerOrGetFile(entry.path);
+            }
+        });
+
         const moduleToUse = options.modulePath;
         const [originalFileName] = getFilename(moduleToUse).split(".");
         const mainModuleFolder = getFileDirectory(moduleToUse);

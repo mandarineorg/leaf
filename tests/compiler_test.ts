@@ -4,7 +4,7 @@ Deno.test({
     name: "Compile Small Binary",
     async fn() {
         const compilingProcess = await Deno.run({
-            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/data/file.ts"]
+            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/data/file2.ts"]
         });
         await compilingProcess.status();
 

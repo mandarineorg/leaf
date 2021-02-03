@@ -1,4 +1,3 @@
-import { MandarineFileSystem } from "../../leafCompiler.ts";
+import { Leaf } from "../../leafCompiler.ts";
 
-console.log(new TextDecoder().decode(MandarineFileSystem.readFileSync('./tests/data/dummyFile.txt')));
-MandarineFileSystem.compile({ modulePath: "./tests/data/file.ts" });
+console.log(new TextDecoder().decode(Leaf.readFileSync("./tests/data/dummyFile.txt")));
