@@ -8,12 +8,7 @@ Deno.test({
         });
         await compilingProcess.status();
 
-        let binary = "";
-        if(Deno.build.os === "windows") {
-            binary = "./file.exe";
-        } else {
-            binary = "./file"
-        }
+        const binary = Deno.build.os === "windows" ? "./file.exe" : "./file";
 
         const playground = "playground";
         const createPlayground = () => Deno.mkdirSync(playground);
