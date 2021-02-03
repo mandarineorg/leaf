@@ -23,7 +23,7 @@ Deno.test({
             Deno.removeSync(playground);
             createPlayground();
         }
-        
+
         const playgroundBinary = `./playground/${binary}`;
         Deno.copyFileSync(binary, playgroundBinary);
 
@@ -37,6 +37,5 @@ Deno.test({
         
         compilingProcess.close();
         executeProcess.close();
-        Deno.removeSync("playground");
     }
 })
