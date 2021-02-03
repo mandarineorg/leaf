@@ -1,5 +1,5 @@
 # Leaf
-[![Leaf CI](https://github.com/mandarineorg/leaf/workflows/ci/badge.svg)](https://github.com/mandarineorg/leaf)
+[![Leaf CI](https://github.com/mandarineorg/leaf/workflows/Unit%20Tests/badge.svg)](https://github.com/mandarineorg/leaf)
 
 <img src="https://www.mandarinets.org/assets/images/full-logo-simple.svg" width="180" height="180" />
 
