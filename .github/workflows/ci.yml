@@ -22,4 +22,4 @@ jobs:
       - name: run tests
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
-        run: deno test --reload --allow-all --unstable tests/
+        run: deno test --config tsconfig.json --reload --allow-run --allow-read --allow-write
