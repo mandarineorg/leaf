@@ -13,7 +13,8 @@ jobs:
       fail-fast: true
     steps:
       - uses: actions/checkout@v2
-      - env
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
       - name: Setup deno
         uses: denolib/setup-deno@master
         with:
