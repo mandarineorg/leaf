@@ -1,0 +1,7 @@
+{
+    "compilerOptions": {
+        "strict": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+    }
+}
