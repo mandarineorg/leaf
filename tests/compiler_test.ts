@@ -1,41 +1,52 @@
-import * as StdAsserts from "https://deno.land/std@0.74.0/testing/asserts.ts";
+import { Test, Orange } from "https://deno.land/x/orange@v0.5.0/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.74.0/testing/asserts.ts";
 
-Deno.test({
-    name: "Compile Small Binary",
-    async fn() {
-        const compilingProcess = await Deno.run({
-            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/data/file2.ts"]
+export class Tests {
+
+    private static executeProcess: Deno.Process;
+    private static compileProcess: Deno.Process;
+    private static binaryName: string;
+
+    constructor() {
+        Orange.setOptions(this, {
+            testSuiteName: "Leaf Compiler",
+            ignore: false,
+            generateReport: true,
+            hooks: {
+                beforeEach() {
+                    Deno.mkdirSync("playground");
+                    Tests.binaryName = Deno.build.os === "windows" ? "./file.exe" : "./file";
+                },
+                afterEach() {
+                    Tests.compileProcess.close();
+                    Tests.executeProcess.close();
+                    Deno.removeSync(`./playground/${Tests.binaryName}`);
+                    Deno.removeSync("playground");
+                }
+            }
+        })
+    }
+
+    @Test({ name: "Compile Simple Hello World Binary" })
+    async helloWorldBinary() {
+        Tests.compileProcess = Deno.run({
+            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/fixtures/hello-world/file2.ts"]
         });
-        await compilingProcess.status();
 
-        const binary = Deno.build.os === "windows" ? "./file.exe" : "./file";
+        await Tests.compileProcess.status();
 
-        const playground = "playground";
-        const createPlayground = () => Deno.mkdirSync(playground);
-        try {
-            createPlayground();
-        } catch {
-            Deno.removeSync(playground);
-            createPlayground();
-        }
+        Deno.copyFileSync(Tests.binaryName, `./playground/${Tests.binaryName}`);
+        Deno.removeSync(Tests.binaryName);
 
-        const playgroundBinary = `./playground/${binary}`;
-        Deno.copyFileSync(binary, playgroundBinary);
-
-        const executeProcess = Deno.run({
-            cmd: [playgroundBinary],
+        Tests.executeProcess = Deno.run({
+            cmd: [`./playground/${Tests.binaryName}`],
             stdout: "piped"
         });
-        await executeProcess.status();
-        const executeResult = new TextDecoder().decode(await executeProcess.output());
-        StdAsserts.assertEquals(executeResult, "Hello World!\n");
-        
-        compilingProcess.close();
-        executeProcess.close();
 
-        // Clean up
-        Deno.removeSync(binary);
-        Deno.removeSync(`./playground/${binary}`);
-        Deno.removeSync(playground);
+        await Tests.executeProcess.status();
+
+        const executeResult = new TextDecoder().decode(await Tests.executeProcess.output());
+
+        assertEquals(executeResult, "Hello World!\n");
     }
-})
+}
