@@ -37,5 +37,10 @@ Deno.test({
         
         compilingProcess.close();
         executeProcess.close();
+
+        // Clean up
+        Deno.removeSync(binary);
+        Deno.removeSync(`./playground/${binary}`);
+        Deno.removeSync(playground);
     }
 })
