@@ -13,6 +13,21 @@ Leaf is a fake file system for Deno binaries. This means, you can save your file
 ## Usage
 To use **Leaf** in your application, you must use the Leaf File System APIs instead of Deno's.
 
+### compile
+The `compile` method is responsible for creating a binary with your resources in it. `compile` takes one argument which is the options to include.
+```typescript
+import { Leaf } from "https://deno.land/x/leaf@v1.0.0/mod.ts";
+
+Leaf.compile({
+    modulePath: "./myEntryPoint.ts",
+    contentFolders: ["./resources"]
+})
+```
+`modulePath` and `contentFolders` are necessary.  
+
+- `modulePath`: File to be compiled into a binary.
+- `contentFolders`: Folders to be attached to the binary.
+
 ### readFileSync
 Synchronously reads and returns the entire contents of a file as an array of bytes. `TextDecoder` can be used to transform the bytes to string if required. Reading a directory returns an empty data array.
 
@@ -52,6 +67,42 @@ import { Leaf } from "https://deno.land/x/leaf@v1.0.0/mod.ts";
 const data = await Leaf.readTextFile("hello.txt");
 console.log(data);
 ```
+
+-----------------
+## Example
+
+_file1.ts:_
+
+```typescript
+import { Leaf } from "https://deno.land/x/leaf@v1.0.0/mod.ts";
+
+Leaf.compile({
+    modulePath: "./myEntryPoint.ts",
+    contentFolders: ["./resources"]
+})
+```
+
+_./resources/text.txt_
+```text
+Hello World
+```
+
+_myEntryPoint.ts:_
+```typescript
+import { Leaf } from "https://deno.land/x/leaf@v1.0.0/mod.ts";
+
+console.log(Leaf.readTextFileSync("./resources/text.txt"));
+```
+
+```batch
+deno run --allow-all --unstable _myEntryPoint.ts
+```
+```batch
+./myEntryPoint (.exe if windows)
+# output: Hello World
+```
+-----------------
+
 
 ## Questions
 For questions & community support, please visit our [Discord Channel](https://discord.gg/qs72byB) or join us on our [twitter](https://twitter.com/mandarinets).

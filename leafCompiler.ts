@@ -107,7 +107,6 @@ export class Leaf {
 
         options.contentFolders.forEach((folder) => {
             for (const entry of Array.from(walkSync(folder)).filter((item) => item.isFile)) {
-                console.log(entry);
                 this.registerOrGetFile(entry.path);
             }
         });
