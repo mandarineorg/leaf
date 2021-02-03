@@ -66,6 +66,9 @@ export class Leaf {
     private static registerOrGetFile(path: string | URL): Uint8Array {
         this.initialize();
 
+        // We don't use in-memory while it's not an executable
+        if(!isExecutable) return Deno.readFileSync(path);
+
         let filePath = getFilePath(path);
 
         if(!filePath) throw new Error("Invalid Path");
@@ -73,12 +76,13 @@ export class Leaf {
         const fileInMemory = this.files[filePath] || (this.files[`./${filePath}`] || this.files[filePath.replace("./", "")]);
 
         if(!fileInMemory) {
+            // Logic for the compiler
             if(fileExists(filePath)) {
                 const fileContent = Deno.readFileSync(filePath);
                 this.files[filePath] = fileContent;
                 return fileContent;
             } else {
-                throw new Error("File could not be registered since it does not exist.");
+                throw new Error(`File not found (${filePath}).`);
             }
         } else {
             return fileInMemory;
