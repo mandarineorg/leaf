@@ -15,7 +15,9 @@ Deno.test({
             binary = "./file"
         }
 
+        try {
         Deno.mkdirSync("playground");
+        } catch {}
         const playgroundBinary = `./playground/${binary}`;
         Deno.copyFileSync(binary, playgroundBinary);
 
