@@ -1,0 +1,24 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macOS-latest]
+        deno: ["v1.7.1"]
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+      - env
+      - name: Setup deno
+        uses: denolib/setup-deno@master
+        with:
+          deno-version: ${{ matrix.deno }}
+      - name: run tests
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+        run: deno test --reload --allow-all --unstable tests/
