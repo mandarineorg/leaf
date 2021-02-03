@@ -70,7 +70,8 @@ export class Leaf {
 
         if(!filePath) throw new Error("Invalid Path");
 
-        const fileInMemory = this.files[filePath] || this.files[`./${filePath}`];
+        const fileInMemory = this.files[filePath] || (this.files[`./${filePath}`] || this.files[filePath.replace("./", "")]);
+
         if(!fileInMemory) {
             if(fileExists(filePath)) {
                 const fileContent = Deno.readFileSync(filePath);
