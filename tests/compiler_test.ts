@@ -15,8 +15,12 @@ Deno.test({
             binary = "./file"
         }
 
+        Deno.mkdirSync("playground");
+        const playgroundBinary = `./playground/${binary}`;
+        Deno.copyFileSync(binary, playgroundBinary);
+
         const executeProcess = Deno.run({
-            cmd: [binary],
+            cmd: [playgroundBinary],
             stdout: "piped"
         });
         await executeProcess.status();
@@ -25,5 +29,6 @@ Deno.test({
         
         compilingProcess.close();
         executeProcess.close();
+        Deno.removeSync("playground");
     }
 })
