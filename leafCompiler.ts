@@ -19,16 +19,7 @@ const fileExists = (path: string | URL): boolean => {
     }
 }
 
-const getFilePath = (path: string | URL): string => {
-    let filePath = undefined;
-
-    if(path instanceof URL) {
-        filePath = path.toString();
-    } else {
-        filePath = path;
-    }
-    return filePath;
-}
+const getFilePath = (path: string | URL): string => path instanceof URL ? path.toString() : path;
 
 const getFileDirectory = (filePath: string) => {
     if (filePath.indexOf("/") == -1) { // windows
