@@ -16,7 +16,7 @@ To use **Leaf** in your application, you must use the Leaf File System APIs inst
 ### compile
 The `compile` method is responsible for creating a binary with your resources in it. `compile` takes one argument which is the options to include.
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 Leaf.compile({
     modulePath: "./myEntryPoint.ts",
@@ -32,7 +32,7 @@ Leaf.compile({
 Synchronously reads and returns the entire contents of a file as an array of bytes. `TextDecoder` can be used to transform the bytes to string if required. Reading a directory returns an empty data array.
 
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 const decoder = new TextDecoder("utf-8");
 const data = Leaf.readFileSync("hello.txt");
@@ -43,7 +43,7 @@ console.log(decoder.decode(data));
 Reads and returns the entire contents of a file as an array of bytes. `TextDecoder` can be used to transform the bytes to string if required. Reading a directory returns an empty data array.
 
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 const decoder = new TextDecoder("utf-8");
 const data = await Leaf.readFile("hello.txt");
@@ -53,7 +53,7 @@ console.log(decoder.decode(data));
 ### readTextFileSync
 Synchronously reads and returns the entire contents of a file as utf8 encoded string.
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 const data = Leaf.readTextFileSync("hello.txt");
 console.log(data);
@@ -62,7 +62,7 @@ console.log(data);
 ### readTextFile
 Reads and returns the entire contents of a file as utf8 encoded string.
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 const data = await Leaf.readTextFile("hello.txt");
 console.log(data);
@@ -74,7 +74,7 @@ console.log(data);
 _file1.ts:_
 
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 Leaf.compile({
     modulePath: "./myEntryPoint.ts",
@@ -89,7 +89,7 @@ Hello World
 
 _myEntryPoint.ts:_
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.1/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
 
 console.log(Leaf.readTextFileSync("./resources/text.txt"));
 ```
