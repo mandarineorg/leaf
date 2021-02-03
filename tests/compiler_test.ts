@@ -6,6 +6,7 @@ export class Tests {
     private static executeProcess: Deno.Process;
     private static compileProcess: Deno.Process;
     private static binaryName: string;
+    private static playgroundFolder: string;
 
     constructor() {
         Orange.setOptions(this, {
@@ -14,14 +15,14 @@ export class Tests {
             generateReport: true,
             hooks: {
                 beforeEach() {
-                    Deno.mkdirSync("playground");
+                    Tests.playgroundFolder = Deno.makeTempDirSync({ prefix: "leaf_", suffix: "_tests" });
                     Tests.binaryName = Deno.build.os === "windows" ? "./file.exe" : "./file";
                 },
                 afterEach() {
                     Tests.compileProcess.close();
                     Tests.executeProcess.close();
-                    Deno.removeSync(`./playground/${Tests.binaryName}`);
-                    Deno.removeSync("playground");
+                    Deno.removeSync(`${Tests.playgroundFolder}/${Tests.binaryName}`);
+                    Deno.removeSync(Tests.playgroundFolder);
                 }
             }
         })
@@ -35,11 +36,11 @@ export class Tests {
 
         await Tests.compileProcess.status();
 
-        Deno.copyFileSync(Tests.binaryName, `./playground/${Tests.binaryName}`);
+        Deno.copyFileSync(Tests.binaryName, `${Tests.playgroundFolder}/${Tests.binaryName}`);
         Deno.removeSync(Tests.binaryName);
 
         Tests.executeProcess = Deno.run({
-            cmd: [`./playground/${Tests.binaryName}`],
+            cmd: [`${Tests.playgroundFolder}/${Tests.binaryName}`],
             stdout: "piped"
         });
 
