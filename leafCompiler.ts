@@ -109,11 +109,7 @@ export class Leaf {
 
         const moduleToUse = options.modulePath;
         const [originalFileName] = getFilename(moduleToUse).split(".");
-        const mainModuleFolder = getFileDirectory(moduleToUse);
-        const tempFilename = `.${guidGenerator()}.js`;
-        const tempFilePath = `${mainModuleFolder}/${tempFilename}`;
-
-        Deno.createSync(tempFilePath).close();
+        const tempFilePath = Deno.makeTempFileSync({ prefix: "leaf_" });
 
         const fakeFileSystemString = `\n \n window["${fileSystemPropertyName}"] = ${this.storageToJson()}; \n \n`;
         Deno.writeFileSync(tempFilePath, encoder.encode(fakeFileSystemString), { append: true });
