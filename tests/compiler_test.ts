@@ -37,11 +37,11 @@ export class Tests {
 
         await Tests.compileProcess.status();
 
-        Deno.copyFileSync(Tests.binaryName, `${Tests.tmpFile}`);
+        Deno.copyFileSync(Tests.binaryName, Tests.tmpFile);
         Deno.removeSync(Tests.binaryName);
 
         Tests.executeProcess = Deno.run({
-            cmd: [`${Tests.tmpFile}`],
+            cmd: [Tests.tmpFile],
             stdout: "piped"
         });
 
@@ -61,11 +61,11 @@ export class Tests {
 
         await Tests.compileProcess.status();
 
-        Deno.copyFileSync(Tests.binaryName, `${Tests.tmpFile}`);
+        Deno.copyFileSync(Tests.binaryName, Tests.tmpFile);
         Deno.removeSync(Tests.binaryName);
 
         Tests.executeProcess = Deno.run({
-            cmd: [`${Tests.tmpFile}`],
+            cmd: [Tests.tmpFile],
             stdout: "piped"
         });
 
