@@ -51,4 +51,28 @@ export class Tests {
 
         assertEquals(executeResult, "Hello World!\n");
     }
+
+    @Test({ name: "Compile with Output Configured" })
+    async outputConfig() {
+        Tests.binaryName = Deno.build.os === "windows" ? "helloWorldApp.exe" : "helloWorldApp";
+        Tests.compileProcess = Deno.run({
+            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/fixtures/output-config/file2.ts"]
+        });
+
+        await Tests.compileProcess.status();
+
+        Deno.copyFileSync(Tests.binaryName, `${Tests.tmpFile}`);
+        Deno.removeSync(Tests.binaryName);
+
+        Tests.executeProcess = Deno.run({
+            cmd: [`${Tests.tmpFile}`],
+            stdout: "piped"
+        });
+
+        await Tests.executeProcess.status();
+
+        const executeResult = new TextDecoder().decode(await Tests.executeProcess.output());
+
+        assertEquals(executeResult, "Hello World!\n");
+    }
 }
