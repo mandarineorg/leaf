@@ -14,14 +14,18 @@ export class Tests {
             ignore: false,
             generateReport: true,
             hooks: {
-                beforeEach() {
+                beforeAll() {
                     Tests.playgroundFolder = Deno.makeTempDirSync({ prefix: "leaf_", suffix: "_tests" });
+                },
+                beforeEach() {
                     Tests.binaryName = Deno.build.os === "windows" ? "./file.exe" : "./file";
                 },
                 afterEach() {
                     Tests.compileProcess.close();
                     Tests.executeProcess.close();
                     Deno.removeSync(`${Tests.playgroundFolder}/${Tests.binaryName}`);
+                },
+                afterAll() {
                     Deno.removeSync(Tests.playgroundFolder);
                 }
             }
