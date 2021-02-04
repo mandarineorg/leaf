@@ -3,7 +3,7 @@ import { assertEquals } from "https://deno.land/std@0.74.0/testing/asserts.ts";
 
 export class Tests {
 
-    private static executeProcess: Deno.Process;
+    private static executeProcess: Deno.Process | undefined;
     private static compileProcess: Deno.Process;
     private static binaryName: string;
     private static tmpFile: string;
@@ -22,7 +22,11 @@ export class Tests {
                 },
                 afterEach() {
                     Tests.compileProcess.close();
-                    Tests.executeProcess.close();
+                    if(Tests.executeProcess) {
+                        Tests.executeProcess.close();
+                    } else {
+                        Tests.executeProcess = undefined;
+                    }
                     Deno.removeSync(Tests.tmpFile);
                 }
             }
@@ -74,5 +78,30 @@ export class Tests {
         const executeResult = new TextDecoder().decode(await Tests.executeProcess.output());
 
         assertEquals(executeResult, "Hello World!\n");
+    }
+
+    @Test({ name: "Compile with Basic Dynamic Import Usage" })
+    async basicDynamicImport() {
+        Tests.compileProcess = Deno.run({
+            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/fixtures/basic-dynamic-import/file2.ts"]
+        });
+
+        await Tests.compileProcess.status();
+
+        Deno.copyFileSync(Tests.binaryName, Tests.tmpFile);
+        Deno.removeSync(Tests.binaryName);
+
+        Tests.executeProcess = Deno.run({
+            cmd: [Tests.tmpFile],
+            stdout: "piped"
+        });
+
+        await Tests.executeProcess.status();
+
+        const executeResult = new TextDecoder().decode(await Tests.executeProcess.output());
+
+        assertEquals(executeResult, "Hello World!\n5 + 2 = 7\n");
+
+        Tests.executeProcess.close();
     }
 }

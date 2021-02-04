@@ -1,3 +1,4 @@
+import { encode } from "https://deno.land/std@0.85.0/encoding/base64.ts";
 import { walkSync } from "https://deno.land/std@0.85.0/fs/mod.ts";
 
 type FileStorageNumbers = { [path: string]: Array<number> };
@@ -164,4 +165,15 @@ export class Leaf {
         return this.renameSync(oldpath, newpath);
     }
 
+    public static import<T = any>(path: string): Promise<T> {
+        return new Promise((resolve) => {
+            if (isExecutable) {
+                const file = this.registerOrGetFile(path);
+                const base64 = encode(file);
+                resolve(import(`data:application/typescript;base64,${base64}`));
+            } else {
+                resolve(import(path));
+            }
+        })
+    }
 }
