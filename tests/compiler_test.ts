@@ -6,7 +6,7 @@ export class Tests {
     private static executeProcess: Deno.Process;
     private static compileProcess: Deno.Process;
     private static binaryName: string;
-    private static playgroundFolder: string;
+    private static tmpFile: string;
 
     constructor() {
         Orange.setOptions(this, {
@@ -14,15 +14,16 @@ export class Tests {
             ignore: false,
             generateReport: true,
             hooks: {
-                beforeEach() {
-                    Tests.playgroundFolder = Deno.makeTempDirSync({ prefix: "leaf_", suffix: "_tests" });
+                beforeAll() {
                     Tests.binaryName = Deno.build.os === "windows" ? "./file.exe" : "./file";
+                },
+                beforeEach() {
+                    Tests.tmpFile = Deno.makeTempFileSync({ prefix: "leaf_", suffix: "_tests" });
                 },
                 afterEach() {
                     Tests.compileProcess.close();
                     Tests.executeProcess.close();
-                    Deno.removeSync(`${Tests.playgroundFolder}/${Tests.binaryName}`);
-                    Deno.removeSync(Tests.playgroundFolder);
+                    Deno.removeSync(Tests.tmpFile);
                 }
             }
         })
@@ -36,11 +37,35 @@ export class Tests {
 
         await Tests.compileProcess.status();
 
-        Deno.copyFileSync(Tests.binaryName, `${Tests.playgroundFolder}/${Tests.binaryName}`);
+        Deno.copyFileSync(Tests.binaryName, Tests.tmpFile);
         Deno.removeSync(Tests.binaryName);
 
         Tests.executeProcess = Deno.run({
-            cmd: [`${Tests.playgroundFolder}/${Tests.binaryName}`],
+            cmd: [Tests.tmpFile],
+            stdout: "piped"
+        });
+
+        await Tests.executeProcess.status();
+
+        const executeResult = new TextDecoder().decode(await Tests.executeProcess.output());
+
+        assertEquals(executeResult, "Hello World!\n");
+    }
+
+    @Test({ name: "Compile with Output Configured" })
+    async outputConfig() {
+        Tests.binaryName = Deno.build.os === "windows" ? "helloWorldApp.exe" : "helloWorldApp";
+        Tests.compileProcess = Deno.run({
+            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/fixtures/output-config/file2.ts"]
+        });
+
+        await Tests.compileProcess.status();
+
+        Deno.copyFileSync(Tests.binaryName, Tests.tmpFile);
+        Deno.removeSync(Tests.binaryName);
+
+        Tests.executeProcess = Deno.run({
+            cmd: [Tests.tmpFile],
             stdout: "piped"
         });
 
