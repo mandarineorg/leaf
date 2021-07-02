@@ -114,7 +114,7 @@ export class Leaf {
         const fakeFileSystemString = `\n \n window["${fileSystemPropertyName}"] = ${this.storageToJson()}; \n \n`;
         Deno.writeFileSync(tempFilePath, encoder.encode(fakeFileSystemString), { append: true });
 
-        const bundleCode = (await Deno.emit(moduleToUse, { bundle: "esm" })).files["deno:///bundle.js"];
+        const bundleCode = (await Deno.emit(moduleToUse, { bundle: "module" })).files["deno:///bundle.js"];
         Deno.writeFileSync(tempFilePath, encoder.encode(bundleCode), { append: true });
 
         let cmd = ["deno", "compile"];
