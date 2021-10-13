@@ -62,7 +62,7 @@ export class Leaf {
     }
 
     private static registerFileInMemory(path: string | URL): void {
-        let filePath = getFilePath(path);
+        let filePath = getFilePath(path).replace(/\\/g, "/");
 
         if(!filePath) throw new Error("Invalid Path");
 
