@@ -74,7 +74,7 @@ Leaf.compile({
 })
 ```
 
-_./resources/text.txt_
+_./resources/hello.txt_
 ```text
 Hello World
 ```
@@ -82,7 +82,7 @@ Hello World
 _myEntryPoint.ts:_
 ```typescript
 
-console.log(Leaf.readTextFileSync("./resources/text.txt"));
+console.log(Leaf.readTextFileSync("./resources/hello.txt"));
 ```
 
 ```batch
