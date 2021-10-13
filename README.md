@@ -16,7 +16,7 @@ Using **Leaf** in your application is very simple, you just use the regular Deno
 ### compile
 The `compile` method is responsible for creating a binary with your resources in it. `compile` takes one argument which is the options to include.
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf/mod.ts";
 
 Leaf.compile({
     modulePath: "./myEntryPoint.ts",
@@ -66,7 +66,7 @@ console.log(data);
 _file1.ts:_
 
 ```typescript
-import { Leaf } from "https://deno.land/x/leaf@v1.0.2/mod.ts";
+import { Leaf } from "https://deno.land/x/leaf/mod.ts";
 
 Leaf.compile({
     modulePath: "./myEntryPoint.ts",
