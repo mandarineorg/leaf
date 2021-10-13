@@ -1,11 +1,11 @@
 import { walkSync } from "https://deno.land/std@0.85.0/fs/mod.ts";
+import { fileSystemExecutable, fileSystemPropertyName } from "./constants.ts";
+import { MEM_METHODS } from "./functions/methods.ts";
 
 type FileStorageNumbers = { [path: string]: Array<number> };
 type FileStorageTypedArray = { [path: string]: Uint8Array };
-type FileSystemConfiguration = { initialized: boolean };
 
 const getFilename = (fullPath: string) => fullPath.replace(/^.*[\\\/]/, '');
-const fileSystemPropertyName: string = "MANDARINE_FILE_SYSTEM";
 const encoder = new TextEncoder();
 const decoderUtf8 = new TextDecoder('utf-8');
 const isExecutable: boolean = (Deno.mainModule == "file://$deno$/bundle.js");
@@ -54,8 +54,6 @@ export type CompileOptions = {
 }
 
 export class Leaf {
-
-    private static configuration: FileSystemConfiguration = { initialized: false };
     private static files: FileStorageTypedArray = {};
 
     private static storageToJson(): string {
@@ -63,45 +61,17 @@ export class Leaf {
         return JSON.stringify(storage);
     }
 
-    private static registerOrGetFile(path: string | URL): Uint8Array {
-        this.initialize();
-
-        // We don't use in-memory while it's not an executable
-        if(!isExecutable) return Deno.readFileSync(path);
-
+    private static registerFileInMemory(path: string | URL): void {
         let filePath = getFilePath(path);
 
         if(!filePath) throw new Error("Invalid Path");
 
-        const fileInMemory = this.files[filePath] || (this.files[`./${filePath}`] || this.files[filePath.replace("./", "")]);
-
-        if(!fileInMemory) {
-            // Logic for the compiler
-            if(fileExists(filePath)) {
-                const fileContent = Deno.readFileSync(filePath);
-                this.files[filePath] = fileContent;
-                return fileContent;
-            } else {
-                throw new Error(`File not found (${filePath}).`);
-            }
+        if(fileExists(filePath)) {
+            const fileContent = Deno.readFileSync(filePath);
+            this.files[filePath] = fileContent;
+            console.log(`Leaf compiled ${filePath}`);
         } else {
-            return fileInMemory;
-        }
-    }
-
-    private static initialize() {
-        if(isExecutable && !this.configuration.initialized) {
-            //@ts-ignore
-            const files = window[fileSystemPropertyName];
-
-            if(files) {
-                // @ts-ignore
-                this.files = Object.fromEntries(Object.entries(files).map(([filePath, content]) => [filePath, new Uint8Array(content)]));
-            }
-
-            this.configuration.initialized = true;
-
-            this.configuration = Object.freeze(this.configuration);
+            throw new Error(`File not found (${filePath}).`);
         }
     }
 
@@ -112,7 +82,7 @@ export class Leaf {
 
         options.contentFolders.forEach((folder) => {
             for (const entry of Array.from(walkSync(folder)).filter((item) => item.isFile)) {
-                this.registerOrGetFile(entry.path);
+                this.registerFileInMemory(entry.path);
             }
         });
 
@@ -123,11 +93,51 @@ export class Leaf {
         const tempFilePath = `${mainModuleFolder}/${tempFilename}`;
 
         Deno.createSync(tempFilePath).close();
+        
+        const fakeMemMethods = Object.values(MEM_METHODS).map((item) => {
+            const name = item[0];
+            const fn = item[1];
 
-        const fakeFileSystemString = `\n \n window["${fileSystemPropertyName}"] = ${this.storageToJson()}; \n \n`;
+            return `
+            globalThis["${name}"] = ${fn};
+            `
+        });
+
+        const fakeFileSystemString = `
+        globalThis["${fileSystemExecutable}"] = (Deno.mainModule == "file://$deno$/bundle.js");
+        \n \n globalThis["${fileSystemPropertyName}"] = ${this.storageToJson()}; \n \n
+
+        const denoApiReadFileSync = Deno.readFileSync;
+        const denoApiReadFile = Deno.readFile;
+        const denoApiReadTextFileSync = Deno.readTextFileSync;
+        const denoApiReadTextFile = Deno.readTextFile;
+
+        ${fakeMemMethods.join("\n")}
+
+        Deno.readFileSync = (path) => {
+            if(globalThis["${fileSystemExecutable}"] === true) {
+                return globalThis["getFileInMem"](globalThis, path);
+            } else {
+                return denoApiReadFileSync(path);
+            }
+        }
+
+        Deno.readFile = async (path) => {
+            return Deno.readFileSync(path);
+        }
+
+        Deno.readTextFileSync = (path) => {
+            return new TextDecoder().decode(Deno.readFileSync(path));
+        }
+
+        Deno.readTextFile = async (path) => {
+            return Deno.readTextFileSync(path);
+        }
+        `;
+
         Deno.writeFileSync(tempFilePath, encoder.encode(fakeFileSystemString), { append: true });
 
-        const bundleCode = (await Deno.emit(moduleToUse, { bundle: "esm" })).files["deno:///bundle.js"];
+        const bundleCode = (await Deno.emit(moduleToUse, { bundle: "module" })).files["deno:///bundle.js"];
         Deno.writeFileSync(tempFilePath, encoder.encode(bundleCode), { append: true });
 
         let cmd = ["deno", "compile"];
@@ -147,34 +157,6 @@ export class Leaf {
             cmd: cmd
         }).status();
 
-        Deno.remove(tempFilePath);
+        //Deno.remove(tempFilePath);
     }
-
-    public static readFileSync(path: string | URL): Uint8Array {
-        return this.registerOrGetFile(path);
-    }
-
-    public static async readFile(path: string | URL): Promise<Uint8Array> {
-        return this.readFileSync(path);
-    }
-
-    public static readTextFileSync(path: string | URL): string {
-        return decoderUtf8.decode(this.readFileSync(path));
-    }
-
-    public static async readTextFile(path: string | URL): Promise<string> {
-        return this.readTextFileSync(path);
-    }
-
-    public static renameSync(oldpath: string | URL, newpath: string | URL): void {
-        const fileContent = this.readFileSync(oldpath);
-
-        const newFilePath = getFilePath(newpath);
-        this.files[newFilePath] = fileContent;
-    }
-
-    public static async rename(oldpath: string | URL, newpath: string | URL): Promise<void> {
-        return this.renameSync(oldpath, newpath);
-    }
-
 }

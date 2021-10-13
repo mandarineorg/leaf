@@ -1,3 +1,1 @@
-import { Leaf } from "../../leafCompiler.ts";
-
-console.log(new TextDecoder().decode(Leaf.readFileSync("./tests/data/dummyFile.txt")));
+console.log(new TextDecoder().decode(Deno.readFileSync("./tests/data/dummyFile.txt")));
