@@ -157,6 +157,6 @@ export class Leaf {
             cmd: cmd
         }).status();
 
-        //Deno.remove(tempFilePath);
+        Deno.remove(tempFilePath);
     }
 }
