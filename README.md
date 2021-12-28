@@ -86,7 +86,7 @@ console.log(Leaf.readTextFileSync("./resources/hello.txt"));
 ```
 
 ```batch
-deno run --allow-all --unstable _myEntryPoint.ts
+deno run --allow-all --unstable myEntryPoint.ts
 ```
 ```batch
 ./myEntryPoint (.exe if windows)
