@@ -79,7 +79,7 @@ _./resources/hello.txt_
 Hello World
 ```
 
-_myEntryPoint.ts:_
+myEntryPoint.ts:_
 ```typescript
 
 console.log(Leaf.readTextFileSync("./resources/hello.txt"));
