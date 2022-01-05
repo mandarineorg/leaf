@@ -116,7 +116,12 @@ export class Leaf {
 
         Deno.readFileSync = (path) => {
             if(globalThis["${fileSystemExecutable}"] === true) {
-                return globalThis["getFileInMem"](globalThis, path);
+                try {
+                    return globalThis["getFileInMem"](globalThis, path);
+                }
+                catch(e) {
+                    return denoApiReadFileSync(path);
+                }
             } else {
                 return denoApiReadFileSync(path);
             }
