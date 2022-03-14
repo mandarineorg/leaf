@@ -8,7 +8,6 @@ type FileStorageTypedArray = { [path: string]: Uint8Array };
 const getFilename = (fullPath: string) => fullPath.replace(/^.*[\\\/]/, '');
 const encoder = new TextEncoder();
 const decoderUtf8 = new TextDecoder('utf-8');
-const isExecutable: boolean = (Deno.mainModule == "file://$deno$/bundle.js");
 
 const fileExists = (path: string | URL): boolean => {
     try {
@@ -76,10 +75,6 @@ export class Leaf {
     }
 
     public static async compile(options: CompileOptions) {
-        if(isExecutable) {
-            return;
-        };
-
         options.contentFolders.forEach((folder) => {
             for (const entry of Array.from(walkSync(folder)).filter((item) => item.isFile)) {
                 this.registerFileInMemory(entry.path);
@@ -104,8 +99,7 @@ export class Leaf {
         });
 
         const fakeFileSystemString = `
-        globalThis["${fileSystemExecutable}"] = (Deno.mainModule == "file://$deno$/bundle.js");
-        \n \n globalThis["${fileSystemPropertyName}"] = ${this.storageToJson()}; \n \n
+        globalThis["${fileSystemPropertyName}"] = ${this.storageToJson()}; \n \n
 
         const denoApiReadFileSync = Deno.readFileSync;
         const denoApiReadFile = Deno.readFile;
@@ -115,16 +109,13 @@ export class Leaf {
         ${fakeMemMethods.join("\n")}
 
         Deno.readFileSync = (path) => {
-            if(globalThis["${fileSystemExecutable}"] === true) {
-                try {
-                    return globalThis["getFileInMem"](globalThis, path);
-                }
-                catch(e) {
-                    return denoApiReadFileSync(path);
-                }
-            } else {
-                return denoApiReadFileSync(path);
+            try {
+                return globalThis["getFileInMem"](globalThis, path);
             }
+            catch(e) {
+                console.info("Non Leaf read", path);
+            }
+            return denoApiReadFileSync(path);
         }
 
         Deno.readFile = async (path) => {
