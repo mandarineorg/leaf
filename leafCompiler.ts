@@ -145,7 +145,7 @@ export class Leaf {
         const bundleCode = (await Deno.emit(moduleToUse, { bundle: "module" })).files["deno:///bundle.js"];
         Deno.writeFileSync(tempFilePath, encoder.encode(bundleCode), { append: true });
 
-        let cmd = [Deno.execPath, "compile"];
+        let cmd = [Deno.execPath(), "compile"];
 
         if(options && options.flags) {
             if(options.flags.indexOf("--output") >= 0) throw new Error("'--output' flag is not valid in the current context. Use the property 'output' instead.");
