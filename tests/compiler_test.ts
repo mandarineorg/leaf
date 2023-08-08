@@ -1,16 +1,18 @@
-import * as StdAsserts from "https://deno.land/std@0.74.0/testing/asserts.ts";
+import { assertEquals } from 'https://deno.land/std@0.197.0/assert/mod.ts';
 
 Deno.test({
     name: "Compile Small Binary",
     async fn() {
-        const compilingProcess = await Deno.run({
-            cmd: ["deno", "run", "--allow-all", "--unstable", "./tests/data/file2.ts"]
-        });
-        await compilingProcess.status();
+        const compilingProcess = new Deno.Command(Deno.execPath(), 
+            {args: ["run", "--allow-all", "--unstable", "./tests/data/file2.ts"]}
+         );
+
+        const compileResp = await compilingProcess.output();
+        assertEquals(compileResp.code, 0);
 
         let binary = "";
         if(Deno.build.os === "windows") {
-            binary = "./file.exe";
+            binary = "file.exe";
         } else {
             binary = "./file"
         }
@@ -20,22 +22,25 @@ Deno.test({
         try {
             createPlayground();
         } catch {
-            Deno.removeSync(playground);
+            Deno.removeSync(playground, {recursive: true});
             createPlayground();
         }
 
         const playgroundBinary = `./playground/${binary}`;
         Deno.copyFileSync(binary, playgroundBinary);
 
-        const executeProcess = Deno.run({
-            cmd: [playgroundBinary],
-            stdout: "piped"
-        });
-        await executeProcess.status();
-        const executeResult = new TextDecoder().decode(await executeProcess.output());
-        StdAsserts.assertEquals(executeResult, "Hello World!\n");
+
+        const executeProcess = new Deno.Command(playgroundBinary);
+
+        const {code, stdout} = await executeProcess.output();
+        assertEquals(code, 0);
         
-        compilingProcess.close();
-        executeProcess.close();
+        const executeResult = new TextDecoder().decode(stdout);
+        assertEquals(executeResult, "Hello World!\n");
+        
+        console.log('clean up');
+        Deno.removeSync(binary);
+        Deno.removeSync(playground, {recursive: true});
+        
     }
 })
