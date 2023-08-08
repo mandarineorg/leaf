@@ -1,13 +1,18 @@
-import { walkSync } from "https://deno.land/std@0.85.0/fs/mod.ts";
-import { fileSystemExecutable, fileSystemPropertyName } from "./constants.ts";
-import { MEM_METHODS } from "./functions/methods.ts";
+import {
+  fileSystemExecutable,
+  fileSystemPropertyName,
+} from './constants.ts';
+import {
+  bundle,
+  walkSync,
+} from './deps.ts';
+import { MEM_METHODS } from './functions/methods.ts';
 
 type FileStorageNumbers = { [path: string]: Array<number> };
 type FileStorageTypedArray = { [path: string]: Uint8Array };
 
 const getFilename = (fullPath: string) => fullPath.replace(/^.*[\\\/]/, '');
 const encoder = new TextEncoder();
-const decoderUtf8 = new TextDecoder('utf-8');
 const isExecutable: boolean = (Deno.mainModule == "file://$deno$/bundle.js");
 
 const fileExists = (path: string | URL): boolean => {
@@ -40,7 +45,7 @@ const getFileDirectory = (filePath: string) => {
 }
 
 const guidGenerator = () => {
-    let S4 = function() {
+    const S4 = function() {
        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
     };
     return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
@@ -62,7 +67,7 @@ export class Leaf {
     }
 
     private static registerFileInMemory(path: string | URL): void {
-        let filePath = getFilePath(path).replace(/\\/g, "/");
+        const filePath = getFilePath(path).replace(/\\/g, "/");
 
         if(!filePath) throw new Error("Invalid Path");
 
@@ -78,7 +83,7 @@ export class Leaf {
     public static async compile(options: CompileOptions) {
         if(isExecutable) {
             return;
-        };
+        }
 
         options.contentFolders.forEach((folder) => {
             for (const entry of Array.from(walkSync(folder)).filter((item) => item.isFile)) {
@@ -142,10 +147,11 @@ export class Leaf {
 
         Deno.writeFileSync(tempFilePath, encoder.encode(fakeFileSystemString), { append: true });
 
-        const bundleCode = (await Deno.emit(moduleToUse, { bundle: "module" })).files["deno:///bundle.js"];
+        
+        const bundleCode = (await bundle(moduleToUse, {type: 'module'})).code;
         Deno.writeFileSync(tempFilePath, encoder.encode(bundleCode), { append: true });
 
-        let cmd = ["deno", "compile"];
+        let cmd = ["compile"];
 
         if(options && options.flags) {
             if(options.flags.indexOf("--output") >= 0) throw new Error("'--output' flag is not valid in the current context. Use the property 'output' instead.");
@@ -158,10 +164,10 @@ export class Leaf {
 
         cmd = [...cmd, "--unstable", "--allow-read", "--output", outputFilename, tempFilePath.toString()];
 
-        await Deno.run({
-            cmd: cmd
-        }).status();
+        const command = new Deno.Command(Deno.execPath(), {args: cmd} );
 
-        Deno.remove(tempFilePath);
+        const {code} = await command.output();
+        console.assert(code === 0);
+        Deno.remove(tempFilePath, {recursive: true});
     }
 }

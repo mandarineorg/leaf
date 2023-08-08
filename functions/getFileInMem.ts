@@ -1,7 +1,7 @@
-import { MemMethods } from "./methods.ts";
+import { MemMethods } from './methods.ts';
 
-export const MANDARINE_GET_FILE_IN_MEM = (globalThis: MemMethods, path: string | URL, isExecutable: boolean): Uint8Array => {
-    let filePath = globalThis["getFilePath"](path);
+export const MANDARINE_GET_FILE_IN_MEM = (globalThis: MemMethods, path: string | URL): Uint8Array => {
+    const filePath = globalThis["getFilePath"](path);
 
     if(!filePath) throw new Error("Invalid Path");
 
